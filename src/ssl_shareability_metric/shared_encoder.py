@@ -5,5 +5,5 @@ class SharedEncoder(torch.nn.Module):
         super().__init__()
         self.shared = torch.nn.Linear(vector_size, 1, bias=False)
         
-    def __call__(self, x):
+    def forward(self, x):
         return self.shared(x)

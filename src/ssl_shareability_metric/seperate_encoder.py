@@ -7,5 +7,5 @@ class SeperateEncoder(torch.nn.Module):
         self.current = torch.nn.Linear(vector_size, 1, bias=False)
         self.future = torch.nn.Linear(vector_size, 1, bias=False)
         
-    def __call__(self, x, y):
+    def forward(self, x, y):
         return self.current(x), self.future(y)
