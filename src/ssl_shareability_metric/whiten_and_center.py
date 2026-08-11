@@ -1,14 +1,20 @@
 import numpy as np
 
-def whiten_and_center(vector):
-        vector_mean = np.mean(vector, axis=0)
-        
-        vector_covariance = np.cov(vector, rowvar=False)
-        
-        vector_covariance_eigenvalues, vector_covariance_eigenvectors = np.linalg.eigh(vector_covariance)
-        
-        vector_inv_sqrt_cov = vector_covariance_eigenvectors @ np.diag(1 / np.sqrt(vector_covariance_eigenvalues)) @ vector_covariance_eigenvectors.T
+class WhitenAndCenter:
+        def __init__(self):
+                self.mean = None
+                self.inv_sqrt_cov = None
 
-        whitened_and_centered_vector = (vector - vector_mean) @ vector_inv_sqrt_cov
+        def fit(self, x):
+                self.mean = np.mean(x, axis=0)
+                covariance = np.cov(x, rowvar=False)
+                covariance_eigenvalues, covariance_eigenvectors = np.linalg.eigh(covariance)
+                covariance_eigenvalues = np.clip(covariance_eigenvalues, 1e-8, None)
+                self.inv_sqrt_cov = covariance_eigenvectors @ np.diag(1 / np.sqrt(covariance_eigenvalues)) @ covariance_eigenvectors.T
+                return self
+
+        def transform(self, x):
+                return (x - self.mean) @ self.inv_sqrt_cov
         
-        return whitened_and_centered_vector
+        def fit_transform(self, x):
+                return self.fit(x).transform(x)

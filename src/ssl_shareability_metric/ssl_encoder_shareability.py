@@ -1,5 +1,4 @@
 import numpy as np
-from ssl_shareability_metric.whiten_and_center import whiten_and_center
 
 def ssl_shareability(current, future):
         current = np.array(current)
@@ -8,10 +7,7 @@ def ssl_shareability(current, future):
         if current.shape != future.shape:
             raise ValueError("Shape mismatch")
         
-        whitened_and_centered_current = whiten_and_center(current)
-        whitened_and_centered_future = whiten_and_center(future)
-        
-        M_cross_covariance = (whitened_and_centered_future.T @ whitened_and_centered_current) / whitened_and_centered_current.shape[0]
+        M_cross_covariance = (future.T @ current) / current.shape[0]
         
         S_symmetric_cross_covariance = (M_cross_covariance + M_cross_covariance.T) / 2
         
