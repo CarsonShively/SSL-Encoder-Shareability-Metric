@@ -1,22 +1,22 @@
 import numpy as np
 
-def ssl_shareability(current, future):
-        current = np.array(current)
-        future = np.array(future)
+def ssl_encoder_shareability(observation_1, observation_2):
+        observation_1 = np.array(observation_1)
+        observation_2 = np.array(observation_2)
         
-        if current.shape != future.shape:
+        if observation_1.shape != observation_2.shape:
             raise ValueError("Shape mismatch")
         
-        M_cross_covariance = (future.T @ current) / current.shape[0]
+        M = (observation_2.T @ observation_1) / observation_1.shape[0]
         
-        S_symmetric_cross_covariance = (M_cross_covariance + M_cross_covariance.T) / 2
+        S = (M + M.T) / 2
         
-        symmetric_eigenvalues = np.linalg.eigvalsh(S_symmetric_cross_covariance)
+        S_eigenvalues = np.linalg.eigvalsh(S)
         
-        J_shared = np.max(np.abs(symmetric_eigenvalues))
+        J_shared = np.max(np.abs(S_eigenvalues))
         
-        J_sep = np.linalg.svd(M_cross_covariance, compute_uv=False)[0]
+        J_sep = np.linalg.svd(M, compute_uv=False)[0]
         
         P = J_shared / J_sep
         
-        return P, J_shared, J_sep
+        return P
