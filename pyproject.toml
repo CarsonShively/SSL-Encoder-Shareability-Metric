@@ -14,6 +14,3 @@ dependencies = [
     "torch>=2.7,<3",
     "ipykernel>=7,<8"
 ]
-
-[tool.setuptools.packages.find]
-where = ["src"]
