@@ -24,7 +24,7 @@ The shareability metric is empirically evaluated on three synthetic rank-one cas
 
 The shareability metric is then benchmarked against the Multiple Features (MFeat) dataset from the UCI machine learning repository using the same theoretical shareability to emprical trained encoder ratio where it acheived a holdout percent error of $2.04\%$, demonstrating accurate performance on unseen benchmark data.
 
-## Reproduce Evaluation
+## Reproduce Evaluations
 
 Install the project dependancies:
 
