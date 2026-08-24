@@ -19,3 +19,19 @@ $$
 where $M=\mathbb{E}[\tilde{y}\tilde{x}^\top]$ denotes the cross-covariance matrix between whitened and centered $x$ and $y$ and $S=\frac{M + M^\top}{2}$ denotes the symmetric part of $M$.
 
 ## Results
+
+The shareability metric is empirically evaluated on three synthetic rank-one cases where the theoretical shareability metric is compared with the trained and evaluated encoder ratio $\frac{shared}{sep}$ using percent error. The metric acheived $1.61\%$, $2.28\%$, and $\0.02\%$ on the low, intermediete, and high rank-one cases respectively, validating the proposed metric in the linear rank-one setting.
+
+The shareability metric is then benchmarked against the Multiple Features (MFeat) dataset from the UCI machine learning repository using the same theoretical shareability to emprical trained encoder ratio where it acheived a holdout percent error of $2.04\%$, demonstrating accurate performance on unseen benchmark data.
+
+## Reproduce Experiments
+
+Install the project dependancies:
+
+```bash
+make install
+```
+
+**[rank-one evaluation](rank_one_evaluation.ipynb)**
+
+**[benchmark evaluation](benchmark_evaluation.ipynb)**
