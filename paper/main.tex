@@ -1,0 +1,454 @@
+\documentclass{article}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{parskip}
+\usepackage{float}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{xurl}
+\usepackage{graphicx} % Required for inserting images
+
+\title{SSL Encoder Shareability Metric}
+\author{Carson Shively}
+\date{August 2026}
+
+\begin{document}
+
+\maketitle
+\section{Abstract}
+This paper introduces a metric for quantifying the performance gap between shared and separate linear encoders in self-supervised representation learning. We derive the encoder shareability score from the cross-covariance structure between paired representations using the theoretical optima of shared and separate encoders respectively, where values near 1 indicates a high degree of encoder shareability. We evaluate this metric theoretically through the rank one case and empirically using both synthetic and real-world data.
+
+\section{Introduction}
+
+Self-supervised learning often relies on representations learned from related observations. In many architectures, these observations are encoded using either shared or separate encoders. Prior work such as VIC Reg demonstrates the use of paired encoder branches in self-supervised representation learning \cite{vicreg}. However, it is not always clear how much additional benefit separate encoders provide over the less computationally demanding shared alternative without training and evaluating both approaches.
+
+This paper proposes a metric to quantify the performance boost provided by separate encoders over a shared encoder without requiring both encoders to be trained. The metric is restricted to a linear encoder setting which permits an exact analytical characterization of the gap between shared and separate representations.
+
+We first develop the theoretical formulation and properties of the metric, followed by an exact analysis of the rank one case. We then evaluate the rank one result empirically using synthetic data and conclude with a case study on real-world data.
+
+\section{Preliminaries}
+Let \(x \in \mathbb{R}^d\) and \(y \in \mathbb{R}^d\) denote two input vectors, where \(d\) represents the dimension of the input vectors.
+
+Let \(\tilde{x} = \Sigma_x^\frac{-1}{2}(x - \mu_x)\) and \(\tilde{y} = \Sigma_y^\frac{-1}{2}(y - \mu_y)\) denote the whitened and centered input vectors \(x\) and \(y\), where \(\Sigma\) represents the covariance matrix and \(\mu\) represents the mean vector. Whitening is commonly used in self-supervised representation learning to normalize feature covariance and help prevent degenerate collapsed representations \cite{pmlr-v139-ermolov21a}.
+
+\section{Assumptions}
+We restrict the analysis to linear encoders to permit an exact characterization of the performance gap between shared and separate encoders.
+
+Let \(a, b \in \mathbb{R}^d\) denote separate encoder weight vectors and \(w \in \mathbb{R}^d\) denote a shared encoder weight vector, constrained such that \(||a||_2 = ||b||_2 = ||w||_2 = 1\).
+
+\[
+\begin{aligned}
+&z_x = a^\top \tilde{x}, \qquad z_y = b^\top \tilde{y} \\
+&z_x = w^\top \tilde{x}, \qquad z_y = w^\top \tilde{y}
+\end{aligned}
+\]
+
+\section{Shareability Metric}
+
+Let \(M = \mathbb{E}[\tilde{y} \tilde{x}^\top]\) denote the cross-covariance matrix between two whitened and centered input vectors. 
+
+The shareability metric is defined as
+
+\[
+p(M) = \frac{J_{shared}^*}{J_{sep}^*} = \frac{max_{||w||_2=1}|w^\top M w|}{max_{||a||_2 = ||b||_2 = 1} |a^\top M b|} \qquad M \neq 0.
+\]
+
+\subsection{Shared Encoder Optimum}
+
+The shared encoders' optimal objective is
+
+\[
+J_{shared}^* = max_{||w||_2=1}|w^\top M w|.
+\]
+
+Let \(S = \frac{M +  M^\top}{2}\) denote the symmetric part of \(M\), and let \(A = \frac{M - M^\top}{2}\) denote it's skew-symmetric part. Since \(w^\top A w = 0\) for any skew-symmetric matrix \(A\), the quadratic form \(w^\top M w\) depends only on \(S\)
+
+\[
+J_{shared}^* = max_{||w||_2=1}|w^\top S w|.
+\]
+
+By the Rayleigh Ritz theorem \cite{trefethen1997numerical}
+
+\[
+J_{shared}^* = max_{i}|\lambda_i(S)|.
+\]
+
+\subsection{Separate Encoder Optimum}
+
+The separate encoders' optimal objective is
+
+\[
+J_{sep}^* = max_{||a||_2=||b||_2=1}|b^\top M a|.
+\]
+
+The optimum over unit vectors \(a\) and \(b\) is given by the spectral norm of \(M\)
+
+\[
+J_{sep}^* = \sigma_1(M).
+\]
+
+\subsection{Closed-Form Shareability}
+
+Combining the shared and separate encoder optima gives the closed-form shareability metric
+
+\[
+p(M) = \frac{J_{shared}^*}{J_{sep}^*} = \frac{max_i|\lambda_i(S)|}{\sigma_1(M)}.
+\]
+
+\subsection{Interpretation}
+
+Since \(p(M) \in [0, 1]\), values near \(1\) indicate high encoder shareability, whereas values near \(0\) indicate low encoder shareability.
+
+\section{Theoretical Analysis}
+
+This section establishes the main theoretical properties of the proposed shareability metric. We first show the metric is bounded, then examine invariance properties, and finally derive an exact expression for the rank one case.
+
+
+\subsection{Boundedness of the Sharability Metric}
+For every \(M \neq 0\) the sharability metric satisfies \(0 \leq p(M) \leq 1\), which follows from
+
+\[
+0 \leq J_{shared}^* \leq J_{sep}^*.
+\]
+
+\textbf{Shared-separate bound}
+
+The separate-encoder problem optimizes over all unit-vector pairs \((a,b)\), while the shared-encoder problem is restricted to the subset \(a=b=w\). Therefore, every shared solution is available to the separate problem, but not every separate solution is feasible for the shared problem. Hence,
+
+\[
+\begin{cases} 
+a^* = b^* \Rightarrow J_{shared}^* = J_{sep}^* \\ 
+a^* \neq b^* \Rightarrow J_{shared}^* < J_{sep}^*.
+\end{cases}
+\]
+
+\textbf{Lower bound}
+
+Since the objective is defined using an absolute value, \(|w^\top M w| \geq 0\) for every feasible \(w\), the maximum over all unit-vectors is also nonnegative
+
+\[
+J_{shared}^* \geq 0.
+\]
+
+\textbf{Ratio bound}
+
+Since the shared encoder is a constrained version of the separate encoder, its optimum cannot exceed the separate optimum
+
+\[
+J_{shared}^* \leq J_{sep}^* \Rightarrow \frac{J_{shared}^*}{J_{sep}^*} \leq 1.
+\]
+
+\subsection{Invariance Properties}
+
+We next examine transformations of \(M\) that leave the shareability metric unchanged.
+
+\textbf{Scale invariance}
+
+Let \(c \neq 0\) be a scalar. Consider the scaled cross-covariance matrix \(cM\)
+
+\[
+\begin{aligned}
+&p(cM) = \frac{max_{||w||_2=1}|w^\top cM w|}{max_{||a||_2 = ||b||_2 = 1} |a^\top cM b|} \\
+&p(cM) = \frac{|c| max_{||w||_2=1}|w^\top M w|}{|c| max_{||a||_2 = ||b||_2 = 1} |a^\top M b|} \\
+&p(cM)  = p(M).
+\end{aligned}
+\]
+
+Therefore, the shareability metric is invariant to nonzero rescaling of \(M\).
+
+\textbf{Orthogonal invariance}
+
+Let \(Q\) be orthogonal such that \(Q^\top Q = I\)
+
+\[
+p(Q^\top M Q) = \frac{max_{||w||_2=1}|w^\top Q^\top M Q w|}{max_{||a||_2 = ||b||_2 = 1} |a^\top Q^\top M Q b|}.
+\]
+
+Let \(z = Qw\), \(u = Qa\), and \(v = Qb\). Since \(Q\) is orthogonal, these transformations preserve the Euclidean norm such that \(||z||_2 = ||w||_2\), \(||u||_2 = ||a||_2\), and \(||v||_2 = ||b||_2\). Using these norm-preserving substitutions, the transformed optimization has the same feasible set as the original
+
+\[
+p(Q^\top M Q) = \frac{max_{||z||_2=1}|z^\top M z|}{max_{||u||_2 = ||v||_2 = 1} |u^\top M v|} = p(M).
+\]
+
+Therefore, orthogonal changes of basis preserve the shareability metric.
+
+\subsection{Rank-One Representation}
+
+Assume \(M\) is rank one so that \(M = \sigma u v^\top\) where \(\sigma\) is the unique nonzero singular value and \(u, v\) are the corresponding left and right singular unit-vectors.
+
+\textbf{Rank-one shared optimum}
+
+From the general shared encoder result
+
+\[
+J_{shared}^* = max_i |\lambda_i(S)|.
+\]
+
+Under the rank one assumption \(M = \sigma u v^\top\), the symmetric part becomes
+
+\[
+S(\sigma u v^\top) = \frac{\sigma u v^\top + (\sigma u v^\top)^\top}{2} = \frac{\sigma}{2}(uv^\top + vu^\top).
+\]
+
+The vectors \(u+v\) and \(u-v\) are eigenvectors of \(S\). Applying \(S\) to each gives the corresponding eigenvalue relations
+
+\[
+S(u + v) = \frac{\sigma}{2}(uv^\top + vu^\top)(u + v) = \frac{\sigma}{2}(1 + u^\top v)
+\]
+
+and
+
+\[
+S(u - v) = \frac{\sigma}{2}(uv^\top + vu^\top)(u - v) = \frac{\sigma}{2}(u^\top v - 1).
+\]
+
+Through comparing with the eigenvalue equation \(Sx = \lambda x\) we obtain
+
+\[
+\lambda_+ = \frac{\sigma}{2}(1 + u^\top v)
+\]
+
+and
+
+\[
+\lambda_- = \frac{\sigma}{2}(u^\top v - 1).
+\]
+
+Then taking the eigenvalue with the largest absolute magnitude yeilds
+
+\[
+J_{shared}^* = max(\lambda_+, \lambda_-) = \frac{\sigma}{2}max(|1 + u^\top v|, |u^\top v - 1|) = \frac{\sigma}{2}(1 + |u^\top v|).
+\]
+
+\textbf{Rank-one separate optimum}
+
+Since \(M = \sigma u v^\top\) has rank one, its only non zero singular value is \(\sigma\)
+
+\[
+J_{sep}^* = \sigma_1(\sigma u v^\top) = \sigma.
+\]
+
+\textbf{Exact rank-one shareability}
+
+Substituting the rank-one shared and separate optima into the shareability metric gives
+
+\[
+p(M) = \frac{J_{shared}^*}{J_{sep}^*} = \frac{\frac{\sigma}{2}(1 + |u^\top v|)}{\sigma} = \frac{1 + |u^\top v|}{2}.
+\]
+
+\textbf{Geometric interpretation}
+
+Let \(\theta\) denote the angle between the singular unit-vectors \(u\) and \(v\). Since \(u^\top v = \cos\theta\)
+
+\[
+p(M) = \frac{1 + |\cos\theta|}{2}
+\]
+
+\[
+\begin{cases}
+    \theta = 0^\circ \Rightarrow p(M) = 1 \\
+    \theta = 90^\circ \Rightarrow p(M) = \frac{1}{2} \\
+    \theta = 180^\circ \Rightarrow p(M) = 1 
+\end{cases}
+\]
+
+Thus, aligned or oppositely directed singular vectors yield full shareability, while orthogonal singular vectors yield a rank-one shareability of \(\frac{1}{2}\).
+
+\section{Empirical Rank-One Evaluation}
+
+This empirical rank-one experiment begins with a shared base observation and constructs three synthetic rank-one settings representing low, intermediate, and high shareability. For each setting shared and separate encoders are trained, and the resulting empirical encoder ratio is compared with the corresponding theoretical shareability score.
+
+The implementation and reproducible Jupyter notebook are available at \url{https://github.com/CarsonShively/SSL-Encoder-Shareability-Metric/blob/main/rank_one_evaluation.ipynb}.
+
+\subsection{Synthetic Rank-One Data Generation}
+
+A base observation matrix containing \(5000\) samples in \(\mathbb{R}^2\) is generated and used to construct three synthetic rank-one settings with low, intermediate and high shareability.
+
+For a rank-one matrix \(M = u v^\top\), the shareability score is
+
+\[
+p(M) = \frac{1 + |u^\top v|}{2},
+\]
+
+where \(u,v \in \mathbb{R}^2\) are unit direction vectors. The magnitude of \(u^\top v\) therefore controls the degree of shareability.
+
+For the low-sharebaility setting, the direction vectors are chosen to be orthogonal,
+
+\[
+u_{low}^\top v_{low} = 0,
+\]
+
+yielding the minimum rank-one shareability,
+
+\[
+p(M_{low}) = \frac{1 + 0}{2} = 0.5.
+\]
+
+For the intermediate-sharebaility setting, the direction vectors are partially aligned,
+
+\[
+u_{low}^\top v_{low} = 0,
+\]
+
+yielding
+
+\[
+p(M_{low}) = \frac{1 + 0.5}{2} = 0.75.
+\]
+
+For the high-sharebaility setting, the direction vectors are fully aligned,
+
+\[
+u_{low}^\top v_{low} = 1,
+\]
+
+yielding the maximum rank-one shareability
+
+\[
+p(M_{low}) = \frac{1 + 1}{2} = 1.
+\]
+
+\subsection{Encoder Training and Evaluation}
+
+\textbf{Encoder architecture}
+
+The shared model uses a single linear encoder applied to both observations, while the separate model uses two independently parameterized linear encoders. 
+
+\textbf{Training}
+
+The rank one data is divided using a 60/20/20 train, validation, holdout split. Full-batch training is used so that each optimization step computes the objective over the complete training set, avoiding additional variance introduced by mini-batch estimates. Because full-batch training produces only one parameter update per epoch, the encoders are trained with 5000 epochs to provide sufficient optimization steps to approach their respective optima. 
+
+Both the shared and separate encoders are trained using stochastic gradient decent (SGD) with a learning rate of \(10^{-3}\). After each optimization step, the encoder weights are renormalized to satisfy the unit norm constraint. 
+
+All encoders minimize the full-batch objective
+
+\[
+\mathcal{L} = -|\frac{1}{n}\sum_1^n (z_x * z_y)|.
+\]
+
+
+Finally the shared intermediate case has a unique gradient based training property. The intermediate shared case has two relevant eigenvector directions
+
+\[
+q_+ = \frac{u+v}{||u+v||}, \qquad q_- = \frac{u-v}{||u-v||}.
+\]
+
+The corresponding eigenvalues are 
+
+\[
+\lambda_+ = \frac{\sigma}{2}(1 + u^\top v),\qquad \lambda_- = \frac{\sigma}{2} (u^\top v - 1).
+\]
+
+For the intermediate shared case, \(u^\top v = 0.5\),
+
+\[
+\lambda_+ = 0.75\sigma, \qquad \lambda_- = 0.25\sigma.
+\]
+
+The shared objective is defined as 
+
+\[
+j_{shared}(w) = |w^\top S w|,
+\]
+
+which gives the directions 
+
+\[
+j_{shared}(q_+) = 0.75\sigma \qquad j_{shared}(q_-) =0.25\sigma.
+\]
+
+So \(q_+\) is the global optimum, while \(q_-\) is an inferior stationary direction. Gradient based training can move toward either depending on initialization.
+
+To reduce initialization sensitivity we perform 10 random restarts and retain the model with the lowest validation loss, this increases the likelihood of reaching the global optimum rather than an inferior stationary solution.
+
+\subsection{Rank-One Results Evaluation}
+
+The proposed shareability metric is computed from the training set and represents the predicted theoretical rank-one shareability. The empirical encoder ratio,
+
+\[
+\text{Empirical Encoder Ratio} = \frac{J_{shared}}{J_{sep}},
+\]
+
+is then computed using the holdout set performance of the trained shared and separate encoders. Agreement between theoretical shareability and the empirical holdout ratio is evaluated using percent error, 
+
+\[
+\text{Percent Error} = \frac{|empirical - theoretical|}{theoretical} \times 100.
+\]
+
+\textbf{Rank-one results:}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|c|c|c}
+        & Theoretical & Empirical & Percent Error \\
+        Low & 0.514 & 0.506 & 1.61\% \\
+        Mid & 0.744 & 0.727 & 2.28\% \\
+        High & 0.999 & 0.999 & 0.02\% \\
+    \end{tabular}
+\end{table}
+
+The empirical encoder ratios closely match the theoretical shareability values across all three rank-one cases. The low and intermediate cases produced percent errors of \(1.61\%\) and \(2.28\%\) respectively, while the high shareability case differs from the theoretical value by only \(0.02\%\). These results support the validity of the proposed shareability metric within the rank-one linear encoder setting, as the predictions closely match the empirical encoder ratios.
+
+\section{Benchmark Evaluation}
+
+The proposed shareability metric is benchmarked against the empirical encoder ratio using the Multiple Features (MFeat) dataset from the UCI machine learning repository \cite{multiple_features_72}. This dataset contains multiple feature representations of the same handwritten digit observations. This evaluation uses the Fourier (`mfeat-fou`) and Karhunen--Loeve (`mfeat-kar`) feature views because they provided mathematically distinct representations of the same underlying observations.
+
+The implementation and reproducible Jupyter notebook are available at \url{https://github.com/CarsonShively/SSL-Encoder-Shareability-Metric/blob/main/benchmark_evaluation.ipynb}.
+
+\subsection{Encoder Training and Architecture}
+
+The paired datasets are shuffled using a shared set of indices to preserve correspondence between the views, then divided 60/20/20 training, validation, holdout.
+
+\textbf{Dimension reduction}
+
+The fourier view $x_{fou} \in \mathbb{R}^{76}$ and Karhunen--Loeve view $x_{kar} \in \mathbb{R}^{64}$ are independently reduced using PCA to a common dimensionality of $\mathbb{R}^{32}$.
+
+\textbf{Whiten and Center}
+
+Each observations is whitened and centered before computing the theoretical shareability. Centering removes the feature mean while whitening rescales and decorrelates the observation so that scale and correlation do not dominate the shareability calculation. 
+
+\textbf{Encoders}
+
+The benchmark implements the shared and separate encoders using SGD optimizer with a learning rate of \(10^{-1}\), and trains using \(5000\) full-batch epochs. As in the rank-one evaluation, the shared encoder is sensitive to initialization bias because the shared objective can contain multiple inferior stationary directions. To reduce this sensitivity, the shared encoder is trained using 10 random restarts and the checkpoint with the lowest validation loss is retained.
+
+\subsection{Benchmark Evaluation}
+
+The benchmark evaluation uses the same empirical encoder ratio as the rank-one evaluation \(\frac{J_{shared}}{J_{sep}}\) calculated on the holdout test set. The empirical encoder ratio is then compared to the theoretical shareability calculated on the train, validation, and finally the holdout set using the same percent error function as the rank-one evaluation.
+
+The holdout empirical encoder ratio is
+
+\[
+\frac{J_{shared}}{J_{sep}} = 0.7693.
+\]
+
+\textbf{Benchmark Evaluation Results:}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|c|c}
+        Split & Theoretical & Percent Error \\
+        Train & 0.8136 & 5.44\% \\
+        Validation & 0.7560 & 1.76\% \\
+        Holdout & 0.7540 & 2.04\% \\
+    \end{tabular}
+\end{table}
+
+\textbf{Analysis}
+
+The empirical encoder ratio closely agrees with the theoretical shareability values across all three data splits. The validation and holdout splits produce percent errors of (\(1.76\%\)) and (\(2.04\%\)) respectively, while the training split shows a larger discrepancy of (\(5.44\%\)). This variation is consistent with differences in cross-view structures across splits since each split produces a different cross-covariance matrix.
+
+The proposed metric is not intended to predict how relationships between paired views will change between training distribution and unseen data. Instead, it measures encoder shareability for the cross-view structure represented by the given dataset. The close agreement between the theoretical holdout shareability and observed holdout encoder ratio therefore produce empirical support for the metric, demonstrating that is accurately reflects the shared-vs-separate encoder performance on unseen benchmark data.
+
+\section{Conclusion and Future Work}
+
+This work introduced a metric for quantifying the degree that two self-supervised learning views can share a common encoder without the need to train and evaluate both approaches. Under the linear setting, the metric was defined as the ratio between the optimal shared-separate encoder objectives providing a value between zero and one that reflects how much of the optimal separate encoder objective can be retained by a shared encoder. The analysis establishes key theoretical properties of the metric including its boundedness and invariance and derived the exact expression for the rank one case. The empirical results on the synthetic rank-one data were consistent with the theoretical predictions while the benchmark demonstrated the metric can be applied to less controlled data.
+
+The primary limitation of this work is that the theoretical analysis is restricted to linear encoders. Although this setting allows the shareability metric to be expressed and analyzed directly in terms of the cross-covariance matrix, practical self-supervised learning commonly use nonlinear neural networks. As a result the behavior of the metric in more complex representation spaces is not yet characterized.
+
+Future work should extend the shareability framework beyond the linear setting to determine whether similar relations ships can be established for nonlinear encoders. This could include studying how encoder shareability behaves in neural networks and whether a comparable objective can still meaningfully quantify the benefit retained by a less computationally demanding shared encoder without fully training and evaluating both configurations. Such an extension could be practically beneficial for identifying when a shared encoder is likely to be sufficient before committing to more computationally expensive training, potentially reducing both training time and computational cost.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
