@@ -6,7 +6,7 @@ A theoretical and empirical framework for measuring when two self-supervised lea
 
 ## Overview
 
-This project introduces a shareability metric for quantifying how much performance is retained when using a shared encoder instead of separate encoders. The metric is designed to indiactes when shared encoder is likeley to be sufficient without requireing both configurations to be fully trained and evaluated, potentially reducing computatinoal cost and training time. The current work is restricted to the linear setting, which allows for exact theoretical analysis while future work will investigate extensions to nonlinear encoders. 
+This project introduces a shareability metric for quantifying how much performance is retained when using a shared encoder instead of separate encoders. The metric is designed to indiactes when a shared encoder is likeley to be sufficient without requireing both configurations to be fully trained and evaluated, potentially reducing computatinoal cost and training time. The current work is restricted to the linear setting, which allows for exact theoretical analysis while future work will investigate extensions to nonlinear encoders. 
 
 ## Key Idea
 
