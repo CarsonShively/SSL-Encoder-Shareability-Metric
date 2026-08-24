@@ -13,9 +13,9 @@ This project introduces a shareability metric for quantifying how much performan
 The shareability metric is defined as
 
 $$
-p(M) = \frac{J_{shared}^*}{J_{sep}^*} = \frac{max_i|\lambda_i(S)|}{\sigma(M)} \qquad M \neq 0,
+p(M) = \frac{J_{shared}^*}{J_{sep}^*} = \frac{\max_i|\lambda_i(S)|}{\sigma_1(M)} \qquad M \neq 0,
 $$
 
-where $M=\mathcal{E}|\tilde{y}\tilede{x}^\top|$ denotes the cross-covairnace matrix between whitened and centered $x$ and $y$ and $S=\frac{M + M^\top}{2}$ denotes the symetric part of $M$.
+where $M=\mathbb{E}[\tilde{y}\tilde{x}^\top]$ denotes the cross-covariance matrix between whitened and centered $x$ and $y$ and $S=\frac{M + M^\top}{2}$ denotes the symmetric part of $M$.
 
 ## Results
